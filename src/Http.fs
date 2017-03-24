@@ -1,6 +1,7 @@
 namespace Axiom
 
 open System
+open System.IO
 open System.Net
 
 module Http =
@@ -53,6 +54,37 @@ module Http =
       let dt = tf - ti
       printfn "Responded in %A us" (dt / 1000L)
     )
+
+  module Request =
+    let inline mapReq mapping (req:HttpListenerRequest) =
+      mapping req
+
+    let (|HttpMethod|_|) httpMethod = mapReq (fun req ->
+      if req.HttpMethod = httpMethod then Some req
+      else None
+    )
+    let (|Get|_|) = (|HttpMethod|_|) "GET"
+    let (|Post|_|) = (|HttpMethod|_|) "POST"
+    let (|Put|_|) = (|HttpMethod|_|) "PUT"
+    let (|Delete|_|) = (|HttpMethod|_|) "DELETE"
+    let (|Patch|_|) = (|HttpMethod|_|) "PATCH"
+
+    let (|Path|_|) path = mapReq (fun req ->
+      if req.Url.AbsolutePath = path then Some req
+      else None
+    )
+
+    let (|PathSegments|_|) path = mapReq (fun req ->
+      req.Url.AbsolutePath.Split('/')
+      |> Array.toList
+      |> Some
+    )
+
+    let asString (req:HttpListenerRequest) =
+      use input = req.InputStream
+      use reader = new StreamReader(input)
+
+      reader.ReadToEnd()
 
   module Response =
     let pipe mapping (resp:HttpListenerResponse) =
