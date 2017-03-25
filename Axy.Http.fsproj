@@ -55,6 +55,8 @@
     <Content Include="packages.config" />
     <None Include="Axy.Http.nuspec" />
     <None Include="README.md" />
+    <Compile Include="src\Controller.fs" />
+    <Compile Include="src\Rest.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Axy">

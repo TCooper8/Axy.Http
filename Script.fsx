@@ -1,5 +1,7 @@
-#load "src/Http.fs"
 #r "packages/Axy.1.0.5/lib/net45/Axy.dll"
+#load "src/Http.fs"
+#load "src/Controller.fs"
+#load "src/Rest.fs"
 
 open System
 open System.Net
@@ -7,53 +9,33 @@ open System.Text
 open Axy
 
 module HttpTest =
+  let (|Guid|_|) str =
+    match Guid.TryParse(str) with
+    | false, _ -> None
+    | true, guid -> Some guid
+
   let test () =
-    use monitor =
-      Actor.actorOf
-        { initialState = 0
-          onFailed = fun state e ->
-            printfn "Error: %A" e
-            Actor.Running state
-          receive = fun i -> function
-            | Actor.Notify msg ->
-              printfn "Handled: %i" i
-              Actor.Running (i + 1)
-            | msg ->
-              printfn "Received: %A" msg
-              Actor.Running i
-        }
+    let users =
+      Http.Controller.init "/users" []
+      |> Http.Rest.get (fun req resp ->
+        match req with
+        | Http.Request.PathSegments [ "users"; Guid userId ] ->
+          Http.Response.ok "User"B resp
+        | _ ->
+          Http.Response.badRequest "Invalid userId, expected valid Guid"B resp
+      )
 
-    use handler =
-      Actor.actorOf
-        { initialState = ()
-          onFailed = fun state e ->
-            printfn "Handler failed: %A" e
-            Actor.Running state
-          receive = fun () -> function
-            | Actor.Notify resp ->
-              resp
-              |> Http.Response.jsonContent
-              |> Http.Response.ok "Hello"B
-              |> fun () ->
-                monitor.Post (Actor.Notify "Done")
-              |> Actor.Running
-            | msg ->
-              printfn "Received: %A" msg
-              Actor.Running ()
-        }
-    use listener = Http.listen "http://localhost:8080/"
+    use listener = Http.Listener.listen "http://localhost:8080/"
 
-    let respond req resp =
-      handler.Post (Actor.Notify resp)
+    let respond =
+      [ users
+      ]
+      |> Http.Rest.init
 
-    Http.onReq listener
-    |> fun events ->
-      events.Publish.Add (Http.defaultHandle respond)
-
-    //Http.reqSeq listener
-    //|> Http.defaultSeqHandler respond
-    //|> fun () -> printfn "Handled chunk"
-    printfn "Listening..."
+    Http.Listener.reqSeq listener
+    |> Http.Listener.defaultSeqHandler respond
+    |> fun () -> printfn "Handled chunk"
+    //printfn "Listening..."
 
     Console.Read() |> ignore
 

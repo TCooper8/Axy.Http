@@ -1,10 +1,10 @@
-namespace Axy
+namespace Axy.Http
 
 open System
 open System.IO
 open System.Net
 
-module Http =
+module Listener =
   let listen prefix =
     let listener = new HttpListener ()
 
@@ -60,74 +60,79 @@ module Http =
       printfn "Responded in %A us" (dt / 1000L)
     )
 
-  module Request =
-    let inline mapReq mapping (req:HttpListenerRequest) =
-      mapping req
+module Request =
+  let inline mapReq mapping (req:HttpListenerRequest) =
+    mapping req
 
-    let (|HttpMethod|_|) httpMethod = mapReq (fun req ->
-      if req.HttpMethod = httpMethod then Some req
-      else None
-    )
-    let (|Get|_|) = (|HttpMethod|_|) "GET"
-    let (|Post|_|) = (|HttpMethod|_|) "POST"
-    let (|Put|_|) = (|HttpMethod|_|) "PUT"
-    let (|Delete|_|) = (|HttpMethod|_|) "DELETE"
-    let (|Patch|_|) = (|HttpMethod|_|) "PATCH"
+  let path = mapReq (fun req ->
+    req.Url.AbsolutePath
+  )
 
-    let (|Path|_|) path = mapReq (fun req ->
-      if req.Url.AbsolutePath = path then Some req
-      else None
-    )
+  let (|HttpMethod|_|) httpMethod = mapReq (fun req ->
+    if req.HttpMethod = httpMethod then Some req
+    else None
+  )
+  let (|Get|_|) = (|HttpMethod|_|) "GET"
+  let (|Post|_|) = (|HttpMethod|_|) "POST"
+  let (|Put|_|) = (|HttpMethod|_|) "PUT"
+  let (|Delete|_|) = (|HttpMethod|_|) "DELETE"
+  let (|Patch|_|) = (|HttpMethod|_|) "PATCH"
 
-    let (|PathSegments|_|) path = mapReq (fun req ->
-      req.Url.AbsolutePath.Split('/')
-      |> Array.toList
-      |> Some
-    )
+  let (|Path|_|) path = mapReq (fun req ->
+    if req.Url.AbsolutePath = path then Some req
+    else None
+  )
 
-    let asString (req:HttpListenerRequest) =
-      use input = req.InputStream
-      use reader = new StreamReader(input)
+  let (|PathSegments|_|) = mapReq (fun req ->
+    req.Url.AbsolutePath.Split('/')
+    |> Array.toList
+    |> List.filter (fun s -> s <> "")
+    |> Some
+  )
 
-      reader.ReadToEnd()
+  let asString (req:HttpListenerRequest) =
+    use input = req.InputStream
+    use reader = new StreamReader(input)
 
-  module Response =
-    let pipe mapping (resp:HttpListenerResponse) =
-      mapping resp
-      resp
+    reader.ReadToEnd()
 
-    let contentType value = pipe (fun resp ->
-      resp.ContentType <- value
-    )
+module Response =
+  let pipe mapping (resp:HttpListenerResponse) =
+    mapping resp
+    resp
 
-    let jsonContent = contentType "application/json"
+  let contentType value = pipe (fun resp ->
+    resp.ContentType <- value
+  )
 
-    let status value = pipe (fun resp ->
-      resp.StatusCode <- value
-    )
+  let jsonContent = contentType "application/json"
 
-    let respond (body:byte seq) (resp:HttpListenerResponse) =
-      use resp = resp
-      let output = resp.OutputStream
-      body
-      |> Seq.iter (output.WriteByte)
+  let status value = pipe (fun resp ->
+    resp.StatusCode <- value
+  )
 
-    let cont = status 100 >> respond Seq.empty
-    let switchingProtocols = status 101 >> respond Seq.empty
+  let respond (body:byte seq) (resp:HttpListenerResponse) =
+    use resp = resp
+    let output = resp.OutputStream
+    body
+    |> Seq.iter (output.WriteByte)
 
-    let ok body = status 200 >> respond body
-    let created body = status 201 >> respond body
-    let accepted body = status 202 >> respond body
-    let nonAuthoratativeInfo body = status 203 >> respond body
-    let noContent = status 204 >> respond Seq.empty
-    let resetContent = status 205 >> respond Seq.empty
-    let partialContent body = status 206 >> respond Seq.empty
+  let cont = status 100 >> respond Seq.empty
+  let switchingProtocols = status 101 >> respond Seq.empty
 
-    let badRequest body = status 400 >> respond body
-    let unauthorized body = status 401 >> respond body
-    let forbidden body = status 403 >> respond body
-    let notFound body = status 404 >> respond body
-    let conflict body = status 405 >> respond body
+  let ok body = status 200 >> respond body
+  let created body = status 201 >> respond body
+  let accepted body = status 202 >> respond body
+  let nonAuthoratativeInfo body = status 203 >> respond body
+  let noContent = status 204 >> respond Seq.empty
+  let resetContent = status 205 >> respond Seq.empty
+  let partialContent body = status 206 >> respond Seq.empty
 
-    let internalServerError body = status 500 >> respond body
-    let serviceUnavailable body = status 503 >> respond body
+  let badRequest body = status 400 >> respond body
+  let unauthorized body = status 401 >> respond body
+  let forbidden body = status 403 >> respond body
+  let notFound body = status 404 >> respond body
+  let conflict body = status 405 >> respond body
+
+  let internalServerError body = status 500 >> respond body
+  let serviceUnavailable body = status 503 >> respond body
