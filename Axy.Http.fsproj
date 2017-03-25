@@ -7,8 +7,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>b8e16cfe-5015-4f5a-bf28-97234f9bfa19</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>axiom_http</RootNamespace>
-    <AssemblyName>axiom_http</AssemblyName>
+    <RootNamespace>Axy.Http</RootNamespace>
+    <AssemblyName>Axy.Http</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
     <Name>Axy.Http</Name>
@@ -21,7 +21,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\axiom_http.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Axy.Http.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,7 +30,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\axiom_http.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Axy.Http.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
