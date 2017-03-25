@@ -112,7 +112,6 @@ module Http =
       body
       |> Seq.iter (output.WriteByte)
 
-
     let cont = status 100 >> respond Seq.empty
     let switchingProtocols = status 101 >> respond Seq.empty
 
