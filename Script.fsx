@@ -1,38 +1,60 @@
 #load "src/Http.fs"
+#r "packages/Axy.1.0.5/lib/net45/Axy.dll"
 
 open System
 open System.Net
 open System.Text
-
 open Axy
 
 module HttpTest =
-  type Data = {
-    time: DateTime
-    largeData: string seq
-  }
-
-  let data =
-    { time = DateTime.Now
-      largeData = seq {
-        for i in 0 .. 100 do
-          yield "Hello"
-      }
-    }
-
   let test () =
+    use monitor =
+      Actor.actorOf
+        { initialState = 0
+          onFailed = fun state e ->
+            printfn "Error: %A" e
+            Actor.Running state
+          receive = fun i -> function
+            | Actor.Notify msg ->
+              printfn "Handled: %i" i
+              Actor.Running (i + 1)
+            | msg ->
+              printfn "Received: %A" msg
+              Actor.Running i
+        }
+
+    use handler =
+      Actor.actorOf
+        { initialState = ()
+          onFailed = fun state e ->
+            printfn "Handler failed: %A" e
+            Actor.Running state
+          receive = fun () -> function
+            | Actor.Notify resp ->
+              resp
+              |> Http.Response.jsonContent
+              |> Http.Response.ok "Hello"B
+              |> fun () ->
+                monitor.Post (Actor.Notify "Done")
+              |> Actor.Running
+            | msg ->
+              printfn "Received: %A" msg
+              Actor.Running ()
+        }
     use listener = Http.listen "http://localhost:8080/"
-    printfn "Listening..."
 
     let respond req resp =
-      resp
-      |> Http.Response.jsonContent
-      |> Http.Response.ok "Hello"B
+      handler.Post (Actor.Notify resp)
 
-    Http.reqSeq listener
-    |> Http.defaultSeqHandler respond
-    |> fun () -> printfn "Handled chunk"
+    Http.onReq listener
+    |> fun events ->
+      events.Publish.Add (Http.defaultHandle respond)
 
-    Console.ReadKey() |> ignore
+    //Http.reqSeq listener
+    //|> Http.defaultSeqHandler respond
+    //|> fun () -> printfn "Handled chunk"
+    printfn "Listening..."
+
+    Console.Read() |> ignore
 
 HttpTest.test()
