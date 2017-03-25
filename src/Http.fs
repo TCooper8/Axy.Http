@@ -17,12 +17,17 @@ module Http =
       yield listener.GetContext()
   }
 
-  let onReq (events: HttpListenerContext Event) (listener:HttpListener) =
+  let onReq (listener:HttpListener) =
+    let events = new Event<HttpListenerContext> ()
+
     async {
       while listener.IsListening do
         let! ctx = listener.GetContextAsync() |> Async.AwaitTask
         events.Trigger(ctx)
     }
+    |> Async.Start
+
+    events
 
   let defaultHandle (respond:HttpListenerRequest -> HttpListenerResponse -> unit) (ctx:HttpListenerContext) =
     try
@@ -107,8 +112,6 @@ module Http =
       body
       |> Seq.iter (output.WriteByte)
 
-    let badRequest body =
-      status 404 >> respond body
 
     let cont = status 100 >> respond Seq.empty
     let switchingProtocols = status 101 >> respond Seq.empty
@@ -120,3 +123,12 @@ module Http =
     let noContent = status 204 >> respond Seq.empty
     let resetContent = status 205 >> respond Seq.empty
     let partialContent body = status 206 >> respond Seq.empty
+
+    let badRequest body = status 400 >> respond body
+    let unauthorized body = status 401 >> respond body
+    let forbidden body = status 403 >> respond body
+    let notFound body = status 404 >> respond body
+    let conflict body = status 405 >> respond body
+
+    let internalServerError body = status 500 >> respond body
+    let serviceUnavailable body = status 503 >> respond body
