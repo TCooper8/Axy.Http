@@ -1,11 +1,10 @@
 #load "src/Http.fs"
-#load "paket-files/tcooper8/axiom/Library.fsx"
 
 open System
 open System.Net
 open System.Text
 
-open Axiom
+open Axy
 
 module HttpTest =
   type Data = {

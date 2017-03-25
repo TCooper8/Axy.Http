@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+    <metadata>
+    <id>Axy.Http</id>
+    <version>1.0.0</version>
+    <authors>TCooper8</authors>
+    <owners>TCooper8</owners>
+    <licenseUrl>http://opensource.org/licenses/MS-PL</licenseUrl>
+    <projectUrl>http://github.com/tcooper8/axy.http</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <releaseNotes>None.</releaseNotes>
+    <description>Basic utility functions for F# Http.</description>
+    <copyright></copyright>
+    <tags>f# utility http</tags>
+    <dependencies>
+      <group targetFramework=".NETFramework4.5" />
+    </dependencies>
+    </metadata>
+    <!-- A readme.txt will be displayed when the package is installed -->
+    <files>
+    <file src="README.md" target="" />
+    </files>
+</package>
