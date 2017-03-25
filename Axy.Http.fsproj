@@ -50,11 +50,11 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="src/Http.fs" />
     <None Include="Script.fsx" />
     <Content Include="packages.config" />
     <None Include="Axy.Http.nuspec" />
     <None Include="README.md" />
+    <Compile Include="src/Http.fs" />
     <Compile Include="src\Controller.fs" />
     <Compile Include="src\Rest.fs" />
   </ItemGroup>
