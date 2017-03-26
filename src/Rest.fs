@@ -2,26 +2,31 @@
 
 open System.IO
 open System.Text
+open System.Text.RegularExpressions
 
 open Axy
 
 module Rest =
-  let get regex action (controller:'a Controller) =
-    let rootPath = controller.rootPath
-
-    Route.init 0 regex action
+  let restRoute httpMethod regex action =
+    Route.init 0 httpMethod (Regex(regex, RegexOptions.Compiled)) action
     |> Controller.addRoute
-    <| controller
+
+  let get<'a> = restRoute "GET"
+  let post<'a> = restRoute "POST"
+  let put<'a> = restRoute "PUT"
+  let delete<'a> = restRoute "DELETE"
+  let patch<'a> = restRoute "PATCH"
 
   let inline internal tryPickRoute req =
     List.tryPick (fun route ->
-      let path = Request.path req
-      let m = route.regex.Match(path)
-      if not m.Success then None
+      if Request.httpMethod req <> route.httpMethod then None
       else
-        [ for group in m.Groups -> group.Value ]
-        |> List.tail
-        |> fun ls -> Some (route, ls)
+        let m = route.regex.Match(Request.path req)
+        if not m.Success then None
+        else
+          [ for group in m.Groups -> group.Value ]
+          |> List.tail
+          |> fun ls -> Some (route, ls)
     )
 
   let inline internal tryPickController req =

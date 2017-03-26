@@ -68,6 +68,10 @@ module Request =
     req.Url.AbsolutePath
   )
 
+  let httpMethod = mapReq (fun req ->
+    req.HttpMethod
+  )
+
   let (|HttpMethod|_|) httpMethod = mapReq (fun req ->
     if req.HttpMethod = httpMethod then Some req
     else None

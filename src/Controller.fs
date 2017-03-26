@@ -5,6 +5,7 @@ open System.Text.RegularExpressions
 
 type 'a Route = {
   priority: int
+  httpMethod: string
   regex: Regex
   action: string list -> HttpListenerRequest -> HttpListenerResponse -> unit
 }
@@ -15,8 +16,9 @@ type 'a Controller = {
 }
 
 module Route =
-  let init priority regex action =
+  let init priority httpMethod regex action =
     { priority = priority
+      httpMethod = httpMethod
       regex = regex
       action = action
     }
