@@ -111,22 +111,24 @@ module Response =
     resp.StatusCode <- value
   )
 
-  let respond (body:byte seq) (resp:HttpListenerResponse) =
-    use resp = resp
-    let output = resp.OutputStream
-    body
-    |> Seq.iter (output.WriteByte)
+  let respond (action: Stream -> unit) (resp:HttpListenerResponse) =
+    action (resp.OutputStream)
 
-  let cont = status 100 >> respond Seq.empty
-  let switchingProtocols = status 101 >> respond Seq.empty
+  let closeResponse = respond (fun stream ->
+    use stream = stream
+    ()
+  )
+
+  let cont = status 100 >> closeResponse
+  let switchingProtocols = status 101 >> closeResponse
 
   let ok body = status 200 >> respond body
   let created body = status 201 >> respond body
   let accepted body = status 202 >> respond body
   let nonAuthoratativeInfo body = status 203 >> respond body
-  let noContent = status 204 >> respond Seq.empty
-  let resetContent = status 205 >> respond Seq.empty
-  let partialContent body = status 206 >> respond Seq.empty
+  let noContent = status 204 >> closeResponse
+  let resetContent = status 205 >> closeResponse
+  let partialContent body = status 206 >> closeResponse
 
   let badRequest body = status 400 >> respond body
   let unauthorized body = status 401 >> respond body
