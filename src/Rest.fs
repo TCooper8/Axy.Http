@@ -47,7 +47,7 @@ module Rest =
     | e ->
       Response.internalServerError (fun output ->
         use writer = new StreamWriter(output)
-        writer.Write(e.Message)
+        writer.Write(string e)
         ()
       )
       <| resp
