@@ -1,11 +1,12 @@
 ﻿namespace Axy.Http
 
 open System.Net
+open System.Text.RegularExpressions
 
 type 'a Route = {
   priority: int
-  predicate: HttpListenerRequest -> bool
-  action: HttpListenerRequest -> HttpListenerResponse -> unit
+  regex: Regex
+  action: string list -> HttpListenerRequest -> HttpListenerResponse -> unit
 }
 
 type 'a Controller = {
@@ -14,9 +15,9 @@ type 'a Controller = {
 }
 
 module Route =
-  let init priority predicate action =
+  let init priority regex action =
     { priority = priority
-      predicate = predicate
+      regex = regex
       action = action
     }
 
