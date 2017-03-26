@@ -1,62 +1,65 @@
 ﻿namespace Axy.Http
 
+open System.IO
 open System.Text
 
 open Axy
 
 module Rest =
-  let get action (controller:'a Controller) =
+  let get regex action (controller:'a Controller) =
     let rootPath = controller.rootPath
 
-    Route.init 0
-    <| (function
-      | Http.Request.Get (Http.Request.PathSegments [ root; _ ]) when root = rootPath -> true
-      | _ -> false
-    )
-    <| action
+    Route.init 0 regex action
     |> Controller.addRoute
     <| controller
+
+  let inline internal tryPickRoute req =
+    List.tryPick (fun route ->
+      let path = Request.path req
+      let m = route.regex.Match(path)
+      if not m.Success then None
+      else
+        [ for group in m.Groups -> group.Value ]
+        |> List.tail
+        |> fun ls -> Some (route, ls)
+    )
+
+  let inline internal tryPickController req =
+    let path = Request.path req
+
+    List.tryPick (fun controller ->
+      if Controller.matchesPath path controller then
+        tryPickRoute req controller.routes
+      else None
+    )
+
+  let inline internal useRoute req resp (route, routeParams) =
+    try
+      route.action routeParams req resp
+    with
+    | :? System.IO.IOException as e ->
+      raise e
+    | e ->
+      Response.internalServerError (fun output ->
+        use writer = new StreamWriter(output)
+        writer.Write(e.Message)
+        ()
+      )
+      <| resp
+      ()
 
   let init controllers =
     let respond req resp =
       let path = Request.path req
 
-      controllers
-      |> List.tryPick (fun controller ->
-        if Controller.matchesPath path controller then
-          controller.routes
-          |> List.tryFind (fun route ->
-            route.predicate req
-          )
-        else
-          None
-      )
-      |> Option.map (fun route ->
-        Try.success ()
-        |> Try.map (fun () ->
-          route.action req resp
-        )
-        |> Try.recover (function
-          | :? System.IO.IOException as e ->
-            // This could be an error with the connection.
-            Failure e
-          | e ->
-            Response.internalServerError
-            <| Encoding.UTF8.GetBytes e.Message
-            <| resp
-            |> Success
-        )
-      )
+      tryPickController req controllers
+      |> Option.map (useRoute req resp)
       |> Option.getOrElse (fun () ->
-        Response.notFound
-        <| Encoding.UTF8.GetBytes (sprintf "Path %s is not found" path)
+        Response.notFound (fun output ->
+          use writer = new StreamWriter(output)
+          writer.Write(sprintf "Path %s is not found" path)
+        )
         <| resp
-        |> Success
-      )
-      |> (function
-        | Failure e ->
-          printfn "UnhandledError: %A" e
-        | _ -> ()
       )
 
     respond
