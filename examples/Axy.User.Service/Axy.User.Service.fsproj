@@ -88,7 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Axy">
-      <HintPath>..\packages\Axy.1.0.5\lib\net45\Axy.dll</HintPath>
+      <HintPath>packages\Axy.1.0.5\lib\net45\Axy.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
@@ -96,26 +96,28 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.10.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>packages\Newtonsoft.Json.10.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Npgsql">
-      <HintPath>..\packages\Npgsql.3.2.2\lib\net451\Npgsql.dll</HintPath>
+      <HintPath>packages\Npgsql.3.2.2\lib\net451\Npgsql.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\..\axiom-http\Axy.Http.fsproj">
+    <Reference Include="System.Threading.Tasks.Extensions">
+      <HintPath>packages\System.Threading.Tasks.Extensions.4.3.0\lib\portable-net45+win8+wp8+wpa81\System.Threading.Tasks.Extensions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Axy.Http.fsproj">
       <Name>Axy.Http</Name>
       <Project>{b8e16cfe-5015-4f5a-bf28-97234f9bfa19}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <Reference Include="System.Threading.Tasks.Extensions">
-      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.3.0\lib\portable-net45+win8+wp8+wpa81\System.Threading.Tasks.Extensions.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
